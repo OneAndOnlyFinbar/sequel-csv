@@ -1,0 +1,10 @@
+{
+  "name": "sequel-csv",
+  "version": "1.0.0-beta0.0.0",
+  "description": "Perform sql operations against csv databases.",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "https://www.npmjs.com/~finbar",
+  "license": "ISC"
+}

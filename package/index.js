@@ -1,0 +1,1 @@
+exports.Table = require('./classes/Table.js');
