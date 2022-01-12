@@ -2,6 +2,7 @@ const fs = require('fs');
 
 class Table {
     _entries = [];
+    _path = null;
     rows = [];
 
     constructor(file) {
@@ -9,6 +10,7 @@ class Table {
         const lines = fs.readFileSync(file).toString().split('\n');
         const headers = lines.shift().split(',');
         this._entries = lines;
+        this._path = file;
 
         for(let i = 0; i < lines.length; i++){
             const row = lines[i].split(',');
@@ -19,22 +21,34 @@ class Table {
         }
     }
 
-    async query(query){
+    //add super detailed jsdoc documentation
+    /**
+     * @returns {Object} ?[]<Row>
+     * @param {String} query Query
+     * @param {Array} [args] [] Params
+     **/
+    async query(query, args){
         let rows = [...this.rows];
         const filteredRows = [...rows];
+
+        if(!args) args = [];
+
+        if(query.match(/\?/) ? query.match(/\?/) : 0 !== args.length) return console.log(`ERR: Query arguments do not match query placeholders in query "${query}"`);
+        for(let i = 0; i < args.length; i++){
+            query = query.replace('?', args[i]);
+        }
 
         let condition;
         if(query.includes('WHERE')){
             condition = query.split('WHERE')[1].trim();
             const conditions = condition.split('AND');
             for(let i = 0; i < conditions.length; i++){
-                let components = conditions[i].split(/(=|!=|<=|>=|<|>)/);
+                let components = conditions[i].split(/(=|!=|<=|>=|<|>|IS NOT NULL)/);
                 let key = components[0].trim();
                 let comparison = components[1].trim();
-                let value = components[2].trim().split(' ')[0];
+                let value = components[2].trim().match(/(["'])(?:(?=(\\?))\2.)*?\1/g) ? escapeString(components[2].trim().match(/(["'])(?:(?=(\\?))\2.)*?\1/g)[0].replaceAll(/['"]/g, '')) : escapeString(components[2].trim());
 
                 const toRemove = [];
-
                 switch(comparison){
                     case '=':
                         filteredRows.forEach(row => {
@@ -43,42 +57,32 @@ class Table {
                     break;
                     case '!=':
                         filteredRows.forEach(row => {
-                            if(row[key] === value && filteredRows.includes(row)){
-                                filteredRows.push(row);
-                                filteredRows.splice(filteredRows.indexOf(row), 1);
-                            }
+                            if(row[key] === value) toRemove.push(row);
                         });
                     break;
                     case '>':
                         filteredRows.forEach(row => {
-                            if(parseInt(row[key]) < value && filteredRows.includes(row)){
-                                filteredRows.push(row);
-                                filteredRows.splice(filteredRows.indexOf(row), 1);
-                            }
+                            if(parseInt(row[key]) <= value) toRemove.push(row);
                         });
                     break;
                     case '<':
                         filteredRows.forEach(row => {
-                            if(parseInt(row[key]) > value && filteredRows.includes(row)){
-                                filteredRows.push(row);
-                                filteredRows.splice(filteredRows.indexOf(row), 1);
-                            }
+                            if(parseInt(row[key]) >= value) toRemove.push(row);
                         });
                     break;
                     case '>=':
                         filteredRows.forEach(row => {
-                            if(parseInt(row[key]) <= value && filteredRows.includes(row)){
-                                filteredRows.push(row);
-                                filteredRows.splice(filteredRows.indexOf(row), 1);
-                            }
+                            if(parseInt(row[key]) < value) toRemove.push(row);
                         });
                     break;
                     case '<=':
                         filteredRows.forEach(row => {
-                            if(parseInt(row[key]) >= value && filteredRows.includes(row)){
-                                filteredRows.push(row);
-                                filteredRows.splice(filteredRows.indexOf(row), 1);
-                            }
+                            if(parseInt(row[key]) > value) toRemove.push(row);
+                        });
+                    break;
+                    case 'IS NOT NULL':
+                        filteredRows.forEach(row => {
+                            if([undefined, null, 'undefined', 'null'].includes(row[key])) toRemove.push(row);
                         });
                     break;
                 }
@@ -93,15 +97,47 @@ class Table {
             case 'select': {
                 const column = query.split(' ')[1];
                 if(column === '*') return filteredRows;
-
-                for(let i = 0; i < filteredRows.length; i++){
-                    const row = filteredRows[i];
-                    if(filteredRows[i].hasOwnProperty(column)) result.push(row[column]);
-                }
-                return filteredRows;
+                return [...filteredRows].map(row => row[column]);
+            }
+            case 'insert': {
+                const columns = query.split('(')[1].split(')')[0].split(',');
+                const values = query.split('VALUES')[1].toString().replaceAll(/[()]/g, '');
+                if(columns.length !== values.split(',').length) return console.error(`ERR: Mismatch in columns count and values count. "${query}".`);
+                let rowString = '';
+                for(let i = 0; i < columns.length; i++)
+                    rowString += i ? `${values.split(',')[i].trim()}` : `${values.split(',')[i].trim()},`;
+                rowString = rowString.replaceAll(/['"]/g, '');
+                fs.appendFileSync(this._path, `\n${rowString}`);
             }
         }
     }
+}
+
+function escapeString (str) {
+    return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
+        switch (char) {
+            case "\0":
+                return "\\0";
+            case "\x08":
+                return "\\b";
+            case "\x09":
+                return "\\t";
+            case "\x1a":
+                return "\\z";
+            case "\n":
+                return "\\n";
+            case "\r":
+                return "\\r";
+            case "\"":
+            case "'":
+            case "\\":
+            case "%":
+                return "\\"+char; // prepends a backslash to backslash, percent,
+                                  // and double/single quotes
+            default:
+                return char;
+        }
+    });
 }
 
 module.exports = Table;
