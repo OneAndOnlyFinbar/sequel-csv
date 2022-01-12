@@ -20,69 +20,85 @@ class Table {
     }
 
     async query(query){
-        const rows = [...this.rows];
-        const filteredRows = [];
-
-        const operation = query.split(' ')[0].toLowerCase();
+        let rows = [...this.rows];
+        const filteredRows = [...rows];
 
         let condition;
         if(query.includes('WHERE')){
             condition = query.split('WHERE')[1].trim();
             const conditions = condition.split('AND');
             for(let i = 0; i < conditions.length; i++){
-                let [ key, comparison, value ] = conditions[i].split(/(=|!=|<=|>=|<|>)/);
-                [ key, comparison, value ] = [ key.trim(), comparison?.trim(), value?.trim() ];
+                let components = conditions[i].split(/(=|!=|<=|>=|<|>)/);
+                let key = components[0].trim();
+                let comparison = components[1].trim();
+                let value = components[2].trim().split(' ')[0];
+
+                const toRemove = [];
+
                 switch(comparison){
                     case '=':
-                        rows.forEach(row => {
-                            if(row[key] !== value) rows.splice(rows.indexOf(row), 1);
+                        filteredRows.forEach(row => {
+                            if(row[key] !== value) toRemove.push(row);
                         });
                     break;
                     case '!=':
-                        rows.forEach(row => {
-                            if(row[key] === value) rows.splice(rows.indexOf(row), 1);
+                        filteredRows.forEach(row => {
+                            if(row[key] === value && filteredRows.includes(row)){
+                                filteredRows.push(row);
+                                filteredRows.splice(filteredRows.indexOf(row), 1);
+                            }
                         });
                     break;
                     case '>':
-                        rows.forEach(row => {
-                            if(parseInt(row[key]) < value) rows.splice(rows.indexOf(row), 1);
+                        filteredRows.forEach(row => {
+                            if(parseInt(row[key]) < value && filteredRows.includes(row)){
+                                filteredRows.push(row);
+                                filteredRows.splice(filteredRows.indexOf(row), 1);
+                            }
                         });
                     break;
                     case '<':
-                        rows.forEach(row => {
-                            if(parseInt(row[key]) > value) rows.splice(rows.indexOf(row), 1);
+                        filteredRows.forEach(row => {
+                            if(parseInt(row[key]) > value && filteredRows.includes(row)){
+                                filteredRows.push(row);
+                                filteredRows.splice(filteredRows.indexOf(row), 1);
+                            }
                         });
                     break;
                     case '>=':
-                        rows.forEach(row => {
-                            if(parseInt(row[key]) <= value) rows.splice(rows.indexOf(row), 1);
+                        filteredRows.forEach(row => {
+                            if(parseInt(row[key]) <= value && filteredRows.includes(row)){
+                                filteredRows.push(row);
+                                filteredRows.splice(filteredRows.indexOf(row), 1);
+                            }
                         });
                     break;
                     case '<=':
-                        rows.forEach(row => {
-                            if(parseInt(row[key]) >= value) rows.splice(rows.indexOf(row), 1);
-                        });
-                    break;
-                    case undefined:
-                        rows.forEach(row => {
-                            if(row[key] !== 'undefined' && row[key] !== 'null') filteredRows.push(row);
+                        filteredRows.forEach(row => {
+                            if(parseInt(row[key]) >= value && filteredRows.includes(row)){
+                                filteredRows.push(row);
+                                filteredRows.splice(filteredRows.indexOf(row), 1);
+                            }
                         });
                     break;
                 }
+                toRemove.forEach(row => {
+                    filteredRows.splice(filteredRows.indexOf(row), 1);
+                });
             }
         }
 
-        const result = [];
+        const operation = query.split(' ')[0].toLowerCase();
         switch(operation){
             case 'select': {
                 const column = query.split(' ')[1];
-                if(column === '*') return rows;
+                if(column === '*') return filteredRows;
 
-                for(let i = 0; i < rows.length; i++){
-                    const row = rows[i];
-                    if(rows[i].hasOwnProperty(column)) result.push(row[column]);
+                for(let i = 0; i < filteredRows.length; i++){
+                    const row = filteredRows[i];
+                    if(filteredRows[i].hasOwnProperty(column)) result.push(row[column]);
                 }
-                return result;
+                return filteredRows;
             }
         }
     }
