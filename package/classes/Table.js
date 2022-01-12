@@ -43,7 +43,7 @@ class Table {
             condition = query.split('WHERE')[1].trim();
             const conditions = condition.split('AND');
             for(let i = 0; i < conditions.length; i++){
-                let components = conditions[i].split(/(=|!=|<=|>=|<|>|IS NOT NULL)/);
+                let components = conditions[i].split(/(=|<>|<=|>=|<|>|IS NULL|IS NOT NULL)/);
                 let key = components[0].trim();
                 let comparison = components[1].trim();
                 let value = components[2].trim().match(/(["'])(?:(?=(\\?))\2.)*?\1/g) ? escapeString(components[2].trim().match(/(["'])(?:(?=(\\?))\2.)*?\1/g)[0].replaceAll(/['"]/g, '')) : escapeString(components[2].trim());
@@ -55,7 +55,7 @@ class Table {
                             if(row[key] !== value) toRemove.push(row);
                         });
                     break;
-                    case '!=':
+                    case '<>':
                         filteredRows.forEach(row => {
                             if(row[key] === value) toRemove.push(row);
                         });
@@ -78,6 +78,11 @@ class Table {
                     case '<=':
                         filteredRows.forEach(row => {
                             if(parseInt(row[key]) > value) toRemove.push(row);
+                        });
+                    break;
+                    case 'IS NULL':
+                        filteredRows.forEach(row => {
+                            if(![undefined, null, 'undefined', 'null'].includes(row[key])) toRemove.push(row);
                         });
                     break;
                     case 'IS NOT NULL':
