@@ -1,8 +1,10 @@
 const fs = require('fs');
+const escapeString = require('../utils/escapeString.js');
 
 class Table {
     _entries = [];
     _path = null;
+    _name = null;
     rows = [];
 
     constructor(file) {
@@ -11,6 +13,7 @@ class Table {
         const headers = lines.shift().split(',');
         this._entries = lines;
         this._path = file;
+        this._name = file.split('/').pop().split('.')[0];
 
         for(let i = 0; i < lines.length; i++){
             const row = lines[i].split(',');
@@ -21,11 +24,10 @@ class Table {
         }
     }
 
-    //add super detailed jsdoc documentation
     /**
      * @returns {Object} ?[]<Row>
      * @param {String} query Query
-     * @param {Array} [args] [] Params
+     * @param {Array} [args] []Params
      **/
     async query(query, args){
         let rows = [...this.rows];
@@ -54,42 +56,42 @@ class Table {
                         filteredRows.forEach(row => {
                             if(row[key] !== value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case '<>':
                         filteredRows.forEach(row => {
                             if(row[key] === value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case '>':
                         filteredRows.forEach(row => {
                             if(parseInt(row[key]) <= value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case '<':
                         filteredRows.forEach(row => {
                             if(parseInt(row[key]) >= value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case '>=':
                         filteredRows.forEach(row => {
                             if(parseInt(row[key]) < value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case '<=':
                         filteredRows.forEach(row => {
                             if(parseInt(row[key]) > value) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case 'IS NULL':
                         filteredRows.forEach(row => {
                             if(![undefined, null, 'undefined', 'null'].includes(row[key])) toRemove.push(row);
                         });
-                    break;
+                        break;
                     case 'IS NOT NULL':
                         filteredRows.forEach(row => {
                             if([undefined, null, 'undefined', 'null'].includes(row[key])) toRemove.push(row);
                         });
-                    break;
+                        break;
                 }
                 toRemove.forEach(row => {
                     filteredRows.splice(filteredRows.indexOf(row), 1);
@@ -97,11 +99,36 @@ class Table {
             }
         }
 
-        const operation = query.split(' ')[0].toLowerCase();
+        const operation = query.toString().split(' ')[0].toLowerCase();
         switch(operation){
             case 'select': {
-                const column = query.split(' ')[1];
+                const column = query.toString().split(' ')[1];
                 if(column === '*') return filteredRows;
+                const maxRegex = /MAX\(([^)]+)\)/g;
+                const minRegex = /MIN\(([^)]+)\)/g;
+
+                if(maxRegex.test(column)){
+                    const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
+                    return await new Promise(resolve => {
+                        let max = 0;
+                        filteredRows.forEach(row => {
+                            if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
+                        });
+                        resolve(max);
+                    });
+                }
+
+                if(minRegex.test(column)){
+                    const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '');
+                    return await new Promise(resolve => {
+                        let min = 0;
+                        filteredRows.forEach(row => {
+                            if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
+                        });
+                        resolve(min);
+                    });
+                }
+
                 return [...filteredRows].map(row => row[column]);
             }
             case 'insert': {
@@ -116,33 +143,6 @@ class Table {
             }
         }
     }
-}
-
-function escapeString (str) {
-    return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
-        switch (char) {
-            case "\0":
-                return "\\0";
-            case "\x08":
-                return "\\b";
-            case "\x09":
-                return "\\t";
-            case "\x1a":
-                return "\\z";
-            case "\n":
-                return "\\n";
-            case "\r":
-                return "\\r";
-            case "\"":
-            case "'":
-            case "\\":
-            case "%":
-                return "\\"+char; // prepends a backslash to backslash, percent,
-                                  // and double/single quotes
-            default:
-                return char;
-        }
-    });
 }
 
 module.exports = Table;

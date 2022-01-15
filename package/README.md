@@ -18,33 +18,29 @@ yarn add sequel-csv
 
 ##### ./table.csv
 
-```css
-userId, level
-1, 5
-2, 10
-3, 40
+```csv
+userId,level
+1,5
+2,10
+3,40
 ```
 ##### main.js
 ```js
-const { Table } = require('./package/index.js');
-const table = new Table('./table.csv');
+const { Database } = require('./package/index.js');
+const database = new Database();
+database.registerSchema('./table.csv') // Register a table (table name is the same as the file name excluding file extension and directory)
 
-//Example Basic Select Query
-const results = await table.query('SELECT * WHERE userId = 1');
-console.log(results) // [{ userId: 1, level: 5 }]
+//Get all rows
+const results = await table.query('SELECT * FROM test');
+console.log(results) // [{ userId: 1, level: 5 }, { userId: 2, level: 10 }, { userId: 3, level: 40 }]
 
-//Get users with greater than 10 level
-const results = await table.query('SELECT * WHERE level > 10');
+//Examples of filtering results
+const results = await table.query('SELECT * FROM test WHERE level > 10');
 console.log(results); // [{ userId: 3, level: 40 }]
 
-//Using AND operator
-const results = await table.query('SELECT * WHERE userId = 2 AND level >= 10');
-console.log(results); // [{ userId: 2, level: 10 }]
+const results = await table.query('SELECT * FROM test WHERE userId = 1');
+console.log(results); // [{ userId: 1, level: 5 }]
 ```
-
-# Important 
-
-Due to the nature of only querying a single file at a time, keywords like `FROM` and `INTO` are not necessary.
 
 # Compatibility
 
@@ -70,9 +66,17 @@ Available comparison operators:
 | SELECT  | Select one or multiple rows |
 | INSERT  | Insert a new row            |
 
+### All Commands
+
+| Name   | Description                 |
+|--------|-----------------------------|
+| SELECT | Select one or multiple rows |
+| INSERT | Insert a new row            |
+| MAX()  | Maximum value for column    |
+| MIN()  | Minimum value for column    |
+
 ### Roadmap
 
- - [ ] Colon separated commands
- - [ ] Delete Command
- - [ ] Update Command
- - [ ] Switch from singular tables to database objects to introduce usage of `FROM` and `INTO` keywords
+Delete Command<br>
+Update Command<br>
+Colon separated commands<br>

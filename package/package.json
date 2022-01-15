@@ -1,10 +1,18 @@
 {
   "name": "sequel-csv",
-  "version": "1.0.0-beta0.1.1",
+  "version": "1.0.0-beta0.2.3",
   "description": "Perform sql operations against csv databases.",
   "main": "index.js",
   "scripts": {},
-  "keywords": [],
+  "keywords": [
+    "DATABASE",
+    "DB",
+    "CSV",
+    "COMMA SEPARATED VALUES",
+    "SEQUEL",
+    "SEQUELIZE",
+    "SEQUELIZE-CSV"
+  ],
   "author": "https://www.npmjs.com/~finbar",
   "license": "ISC"
 }
