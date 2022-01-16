@@ -51,21 +51,6 @@ console.log(results); // [{ userId: 1, level: 5 }]
 
 # Compatibility
 
-### Comparison
-
-Available comparison operators:
-
-| Keyword     | Description              |
-|-------------|--------------------------|
-| =           | Equal                    |
-| <>          | Not Equal to             |
-| \>          | Greater than             |
-| \<          | Less than                |
-| \>=         | Greater than or equal to |
-| \<=         | Less than or equal to    |
-| IS NULL     | Is null                  |
-| IS NOT NULL | Is not null              |
-
 ### Primary Commands
 
 | Keyword | Description                 |
@@ -86,6 +71,21 @@ Available comparison operators:
 | AS     | Alias a single column       |
 | MAX()  | Maximum value for column    |
 | MIN()  | Minimum value for column    |
+
+### Comparison
+
+Available comparison operators:
+
+| Keyword     | Description              |
+|-------------|--------------------------|
+| =           | Equal                    |
+| <>          | Not Equal to             |
+| \>          | Greater than             |
+| \<          | Less than                |
+| \>=         | Greater than or equal to |
+| \<=         | Less than or equal to    |
+| IS NULL     | Is null                  |
+| IS NOT NULL | Is not null              |
 
 ### Roadmap
 

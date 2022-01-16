@@ -1,6 +1,6 @@
 {
   "name": "sequel-csv",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Perform sql operations against csv databases.",
   "main": "index.js",
   "scripts": {},
