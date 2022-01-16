@@ -2,7 +2,8 @@
 
 Package for executing simple sql queries against a csv file.
 
-<img src="https://img.shields.io/npm/v/sequel-csv?style=plastic" alt="">
+<img height="40px" src="https://img.shields.io/npm/v/sequel-csv?style=plastic" alt="">
+<a href='https://ko-fi.com/K3K47LTWF' target='_blank'><img height="40px" src='https://cdn.ko-fi.com/cdn/kofi3.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 # Installation
 
@@ -66,8 +67,8 @@ console.log(results); // [{ userId: 1, level: 5 }]
 | SELECT | Select one or multiple rows |
 | INSERT | Insert a new row            |
 | DELETE | Delete a row                |
+| WHERE  | Start condtionals           |
 | AND    | Logical AND                 |
-| WHERE  | Filter rows                 |
 | AS     | Alias a single column       |
 | MAX()  | Maximum value for column    |
 | MIN()  | Minimum value for column    |
@@ -90,5 +91,5 @@ Available comparison operators:
 ### Roadmap
 
 Update Command<br>
-Colon separated commands<br>
+Semicolon separated commands<br>
 Select multiple columns instead of singular or all
