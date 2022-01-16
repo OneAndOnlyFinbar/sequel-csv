@@ -2,7 +2,7 @@
 
 Package for executing simple sql queries against a csv file.
 
-<img height="40px" src="https://img.shields.io/npm/v/sequel-csv?style=plastic" alt="">
+<a href="https://www.npmjs.com/package/sequel-csv"><img height="40px" src="https://img.shields.io/npm/v/sequel-csv?style=plastic" alt=""></a>
 <a href='https://ko-fi.com/K3K47LTWF' target='_blank'><img height="40px" src='https://cdn.ko-fi.com/cdn/kofi3.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 # Installation
