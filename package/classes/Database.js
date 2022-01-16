@@ -7,9 +7,11 @@ class Database{
     }
     /**
      * @param {string} path Path to csv file
+     * @param {string} [name] Name of table
      */
-    registerSchema(path){
+    registerSchema(path, name){
         const table = new Table(path);
+        if(name?.length > 0) table._name = name;
         this._tables.push(table);
     }
     /**

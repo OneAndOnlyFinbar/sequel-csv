@@ -2,7 +2,8 @@
 
 Package for executing simple sql queries against a csv file.
 
-Complete with sql injection protection
+<img src="https://img.shields.io/npm/v/sequel-csv?style=plastic" alt="">
+
 # Installation
 
 NPM
@@ -28,7 +29,13 @@ userId,level
 ```js
 const { Database } = require('./package/index.js');
 const database = new Database();
-database.registerSchema('./table.csv') // Register a table (table name is the same as the file name excluding file extension and directory)
+
+/*
+By default when registering a new table the table name is taken from the file name, excluding path and
+extension.
+To set a custom schema name provide the name as a string in the second parameter.
+ */
+database.registerSchema('./table.csv')
 
 //Get all rows
 const results = await table.query('SELECT * FROM test');
@@ -65,6 +72,7 @@ Available comparison operators:
 |---------|-----------------------------|
 | SELECT  | Select one or multiple rows |
 | INSERT  | Insert a new row            |
+| DELETE  | Delete a row                |
 
 ### All Commands
 
@@ -72,11 +80,15 @@ Available comparison operators:
 |--------|-----------------------------|
 | SELECT | Select one or multiple rows |
 | INSERT | Insert a new row            |
+| DELETE | Delete a row                |
+| AND    | Logical AND                 |
+| WHERE  | Filter rows                 |
+| AS     | Alias a single column       |
 | MAX()  | Maximum value for column    |
 | MIN()  | Minimum value for column    |
 
 ### Roadmap
 
-Delete Command<br>
 Update Command<br>
 Colon separated commands<br>
+Select multiple columns instead of singular or all

@@ -2,15 +2,17 @@ const fs = require('fs');
 const escapeString = require('../utils/escapeString.js');
 
 class Table {
-    _entries = [];
     _path = null;
     _name = null;
+    _headers = [];
+    _entries = [];
     rows = [];
 
     constructor(file) {
         if (!fs.existsSync(file)) return {};
         const lines = fs.readFileSync(file).toString().split('\n');
         const headers = lines.shift().split(',');
+        this._headers = headers;
         this._entries = lines;
         this._path = file;
         this._name = file.split('/').pop().split('.')[0];
@@ -25,7 +27,7 @@ class Table {
     }
 
     /**
-     * @returns {Object} ?[]<Row>
+     * @returns {Object} []<Row>
      * @param {String} query Query
      * @param {Array} [args] []Params
      **/
@@ -40,8 +42,8 @@ class Table {
             query = query.replace('?', args[i]);
         }
 
-        let condition;
         if(query.includes('WHERE')){
+            let condition;
             condition = query.split('WHERE')[1].trim();
             const conditions = condition.split('AND');
             for(let i = 0; i < conditions.length; i++){
@@ -104,6 +106,20 @@ class Table {
             case 'select': {
                 const column = query.toString().split(' ')[1];
                 if(column === '*') return filteredRows;
+
+                if(query.includes('AS')){
+                    const header = query.toString().split('AS')[0].trim().split(' ')[1];
+                    const alias = query.toString().split('AS')[1].trim();
+                    const columns = column.split(',');
+                    const results = [];
+                    filteredRows.forEach(row => {
+                        let obj = {};
+                        obj[alias] = row[header];
+                        results.push(obj);
+                    });
+                    return results;
+                }
+
                 const maxRegex = /MAX\(([^)]+)\)/g;
                 const minRegex = /MIN\(([^)]+)\)/g;
 
@@ -129,7 +145,15 @@ class Table {
                     });
                 }
 
-                return [...filteredRows].map(row => row[column]);
+                const result = [];
+                filteredRows
+                    .map(row => row[column])
+                    .forEach(value => {
+                        let obj = {};
+                        obj[column] = value;
+                        result.push(obj);
+                    });
+                return result;
             }
             case 'insert': {
                 const columns = query.split('(')[1].split(')')[0].split(',');
@@ -140,6 +164,18 @@ class Table {
                     rowString += i ? `${values.split(',')[i].trim()}` : `${values.split(',')[i].trim()},`;
                 rowString = rowString.replaceAll(/['"]/g, '');
                 fs.appendFileSync(this._path, `\n${rowString}`);
+                break;
+            }
+            case 'delete': {
+                let entries = this._entries;
+                await new Promise(resolve => {
+                    filteredRows.forEach(row => {
+                        entries.splice(entries.indexOf(Object.values(row).join(',')), 1);
+                    })
+                    resolve();
+                })
+                console.log(entries)
+                fs.writeFileSync(this._path, `${this._headers}\n${entries.join('\n')}`);
             }
         }
     }
