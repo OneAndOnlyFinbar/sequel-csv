@@ -66,8 +66,8 @@ console.log(results); // [{ userId: 1, level: 5 }]
 | SELECT | Select one or multiple rows |
 | INSERT | Insert a new row            |
 | DELETE | Delete a row                |
+| WHERE  | Start condtionals           |
 | AND    | Logical AND                 |
-| WHERE  | Filter rows                 |
 | AS     | Alias a single column       |
 | MAX()  | Maximum value for column    |
 | MIN()  | Minimum value for column    |
@@ -90,5 +90,5 @@ Available comparison operators:
 ### Roadmap
 
 Update Command<br>
-Colon separated commands<br>
+Semicolon separated commands<br>
 Select multiple columns instead of singular or all
