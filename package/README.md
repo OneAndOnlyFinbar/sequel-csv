@@ -20,7 +20,7 @@ yarn add sequel-csv
 
 ##### ./table.csv
 
-```csv
+```css
 userId,level
 1,5
 2,10

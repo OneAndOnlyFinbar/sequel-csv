@@ -16,7 +16,7 @@ class Database{
     }
     /**
      * @param {string} query Database
-     * @param {Array} args Arguments
+     * @param {Array} [args] Arguments
      * @returns {Object}
      */
     async query(query, args){

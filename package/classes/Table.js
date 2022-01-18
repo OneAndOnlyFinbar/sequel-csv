@@ -21,7 +21,7 @@ class Table {
             const row = lines[i].split(',');
             const obj = {};
             for(let j = 0; j < row.length; j++)
-                obj[headers[j].replace(/\n|\r/g, '')] = row[j].replace(/\n|\r/g, '');
+                obj[headers[j].replace(/[\n\r]/g, '')] = row[j].replace(/[\n\r]/g, '');
             this.rows.push(obj);
         }
     }
@@ -107,41 +107,34 @@ class Table {
                 const column = query.toString().split(' ')[1];
                 if(column === '*') return filteredRows;
 
-                if(query.includes('AS')){
-                    const header = query.toString().split('AS')[0].trim().split(' ')[1];
-                    const alias = query.toString().split('AS')[1].trim();
-                    const columns = column.split(',');
-                    const results = [];
-                    filteredRows.forEach(row => {
-                        let obj = {};
-                        obj[alias] = row[header];
-                        results.push(obj);
-                    });
-                    return results;
-                }
+                const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
 
                 const maxRegex = /MAX\(([^)]+)\)/g;
                 const minRegex = /MIN\(([^)]+)\)/g;
 
                 if(maxRegex.test(column)){
                     const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
+                    const returnOBJ = {};
                     return await new Promise(resolve => {
                         let max = 0;
                         filteredRows.forEach(row => {
                             if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
                         });
-                        resolve(max);
+                        alias ? returnOBJ[alias] = max : returnOBJ[maxColumn] = max;
+                        resolve(returnOBJ);
                     });
                 }
 
                 if(minRegex.test(column)){
-                    const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '');
+                    const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '').split(' ')[0];
+                    const returnOBJ = {};
                     return await new Promise(resolve => {
                         let min = 0;
                         filteredRows.forEach(row => {
                             if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
                         });
-                        resolve(min);
+                        alias ? returnOBJ[alias] = min : returnOBJ[minColumn] = min;
+                        resolve(returnOBJ);
                     });
                 }
 
