@@ -37,7 +37,7 @@ class Table {
 
         if(!args) args = [];
 
-        if(query.match(/\?/) ? query.match(/\?/) : 0 !== args.length) return console.log(`ERR: Query arguments do not match query placeholders in query "${query}"`);
+        if(query.match(/\?/) ? query.match(/\?/).length !== args.length : false) return console.log(`ERR: Query arguments do not match query placeholders in query "${query}"`);
         for(let i = 0; i < args.length; i++){
             query = query.replace('?', args[i]);
         }
@@ -104,49 +104,113 @@ class Table {
         const operation = query.toString().split(' ')[0].toLowerCase();
         switch(operation){
             case 'select': {
-                const column = query.toString().split(' ')[1];
-                if(column === '*') return filteredRows;
-
-                const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
-
-                const maxRegex = /MAX\(([^)]+)\)/g;
-                const minRegex = /MIN\(([^)]+)\)/g;
-
-                if(maxRegex.test(column)){
-                    const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
-                    const returnOBJ = {};
-                    return await new Promise(resolve => {
-                        let max = 0;
-                        filteredRows.forEach(row => {
-                            if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
-                        });
-                        alias ? returnOBJ[alias] = max : returnOBJ[maxColumn] = max;
-                        resolve(returnOBJ);
-                    });
+                const querySequential = query.toString().split(' ').splice(1);
+                const columns = [];
+                for(let i = 0; i < querySequential.length; i++){
+                    if(['WHERE', 'FROM'].includes(querySequential[i])) break
+                    else columns.push(querySequential[i]);
                 }
 
-                if(minRegex.test(column)){
-                    const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '').split(' ')[0];
-                    const returnOBJ = {};
-                    return await new Promise(resolve => {
-                        let min = 0;
-                        filteredRows.forEach(row => {
-                            if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
-                        });
-                        alias ? returnOBJ[alias] = min : returnOBJ[minColumn] = min;
-                        resolve(returnOBJ);
-                    });
-                }
+                if(columns[0] === '*') return filteredRows;
 
-                const result = [];
-                filteredRows
-                    .map(row => row[column])
-                    .forEach(value => {
-                        let obj = {};
-                        obj[column] = value;
-                        result.push(obj);
-                    });
-                return result;
+                if(columns.length > 1){
+                    const returnRows = [];
+                    for(let i = 0; i < columns.length; i++){
+                        const column = columns[i].replaceAll(',', '');
+                        const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
+
+                        //console.log(alias);
+                        const maxRegex = /MAX\(([^)]+)\)/g;
+                        const minRegex = /MIN\(([^)]+)\)/g;
+
+                        if(maxRegex.test(column)){
+                            const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
+                            const returnOBJ = {};
+                            returnRows.push(await new Promise(resolve => {
+                                let max = 0;
+                                filteredRows.forEach(row => {
+                                    if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
+                                });
+                                alias && !!returnOBJ?.[maxColumn] ? returnOBJ[alias] = max : returnOBJ[maxColumn] = max;
+                                resolve(returnOBJ);
+                            }))
+                        }
+
+                        if(minRegex.test(column)){
+                            const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '').split(' ')[0];
+                            const returnOBJ = {};
+                            returnRows.push(await new Promise(resolve => {
+                                let min = 0;
+                                filteredRows.forEach(row => {
+                                    if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
+                                });
+                                alias ? returnOBJ[alias] = min : returnOBJ[minColumn] = min;
+                                resolve(returnOBJ);
+                            }))
+                        }
+                    }
+
+                    for(let i = 0; i < filteredRows.length; i++){
+                        const filteredRow = {};
+                        for(let j = 0; j < columns.length; j++){
+                            const column = columns[j].replaceAll(',', '');
+                            const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim().replaceAll(',', '') : null;
+                            const originalColumn = column.split(' ')[0];
+                            if([alias, 'AS'].includes(column)) continue;
+                            if(alias){
+                                filteredRow[alias] = filteredRows[i][column];
+                            }else{
+                                if(filteredRows[i]?.[column]) filteredRow[column] = filteredRows[i][column];
+                            }
+                        }
+                        //console.log(filteredRow);
+                        returnRows.push(filteredRow);
+                    }
+                    return returnRows;
+                }else{
+                    const column = columns[0];
+                    const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
+
+                    const maxRegex = /MAX\(([^)]+)\)/g;
+                    const minRegex = /MIN\(([^)]+)\)/g;
+
+                    if(maxRegex.test(column)){
+                        const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
+                        const returnOBJ = {};
+                        return await new Promise(resolve => {
+                            let max = 0;
+                            filteredRows.forEach(row => {
+                                if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
+                            });
+                            alias ? returnOBJ[alias] = max : returnOBJ[maxColumn] = max;
+                            resolve(returnOBJ);
+                        });
+                    }
+
+                    if(minRegex.test(column)){
+                        const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '').split(' ')[0];
+                        const returnOBJ = {};
+                        return await new Promise(resolve => {
+                            let min = 0;
+                            filteredRows.forEach(row => {
+                                if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
+                            });
+                            alias ? returnOBJ[alias] = min : returnOBJ[minColumn] = min;
+                            resolve(returnOBJ);
+                        });
+                    }
+
+                    const result = [];
+                    filteredRows
+                        .map(row => row[column])
+                        .forEach(value => {
+                            let obj = {};
+                            obj[column] = value;
+                            result.push(obj);
+                        });
+                    return result;
+                }
+                break;
             }
             case 'insert': {
                 const columns = query.split('(')[1].split(')')[0].split(',');

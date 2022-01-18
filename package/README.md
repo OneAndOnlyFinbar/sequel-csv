@@ -16,6 +16,8 @@ Yarn
 yarn add sequel-csv
 ```
 
+# [Documentation on Github](https://github.com/OneAndonlyFinbar/sequel-csv/wiki)
+
 # Usage
 
 ##### ./table.csv
