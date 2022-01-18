@@ -119,34 +119,31 @@ class Table {
                         const column = columns[i].replaceAll(',', '');
                         const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
 
-                        //console.log(alias);
                         const maxRegex = /MAX\(([^)]+)\)/g;
                         const minRegex = /MIN\(([^)]+)\)/g;
 
                         if(maxRegex.test(column)){
                             const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
                             const returnOBJ = {};
-                            returnRows.push(await new Promise(resolve => {
-                                let max = 0;
-                                filteredRows.forEach(row => {
-                                    if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
-                                });
-                                alias && !!returnOBJ?.[maxColumn] ? returnOBJ[alias] = max : returnOBJ[maxColumn] = max;
-                                resolve(returnOBJ);
-                            }))
+                            let max = 0;
+                            filteredRows.forEach(row => {
+                                if(!max || parseInt(row[maxColumn]) > parseInt(max)) max = row[maxColumn];
+                            });
+                            if(alias) returnOBJ[alias] = max;
+                            else returnOBJ[maxColumn] = max;
+                            return returnOBJ;
                         }
 
                         if(minRegex.test(column)){
                             const minColumn = column.match(minRegex)[0].replace('MIN(', '').replace(')', '').split(' ')[0];
                             const returnOBJ = {};
-                            returnRows.push(await new Promise(resolve => {
-                                let min = 0;
-                                filteredRows.forEach(row => {
-                                    if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
-                                });
-                                alias ? returnOBJ[alias] = min : returnOBJ[minColumn] = min;
-                                resolve(returnOBJ);
-                            }))
+                            let min = 0;
+                            filteredRows.forEach(row => {
+                                if(!min || parseInt(row[minColumn]) < parseInt(min)) min = row[minColumn];
+                            });
+                            if(alias) returnOBJ[alias] = min;
+                            else returnOBJ[minColumn] = min;
+                            return returnOBJ;
                         }
                     }
 
@@ -163,7 +160,6 @@ class Table {
                                 if(filteredRows[i]?.[column]) filteredRow[column] = filteredRows[i][column];
                             }
                         }
-                        //console.log(filteredRow);
                         returnRows.push(filteredRow);
                     }
                     return returnRows;
