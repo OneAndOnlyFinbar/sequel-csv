@@ -16,11 +16,14 @@ Yarn
 yarn add sequel-csv
 ```
 
+# Documentation
+View our documentation on [Github](https://github.com/OneAndonlyFinbar/sequel-csv/wiki)
+
 # Usage
 
 ##### ./table.csv
 
-```csv
+```css
 userId,level
 1,5
 2,10
