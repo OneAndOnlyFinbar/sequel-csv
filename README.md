@@ -99,9 +99,3 @@ Available comparison operators:
 | \<=         | Less than or equal to    |
 | IS NULL     | Is null                  |
 | IS NOT NULL | Is not null              |
-
-### Roadmap
-
-Update Command<br>
-Semicolon separated commands<br>
-Select multiple columns instead of singular or all
