@@ -113,7 +113,10 @@ class Table {
 
                 if(columns[0] === '*') return filteredRows;
 
-                if(columns.length > 1){
+                let realColumns = Array.from(columns);
+                for(let i = 0; i < realColumns.length; i++) if(realColumns[i].includes('AS')) realColumns.splice(i, 2);
+
+                if(realColumns.length > 1){
                     const returnRows = [];
                     for(let i = 0; i < columns.length; i++){
                         const column = columns[i].replaceAll(',', '');
@@ -169,6 +172,10 @@ class Table {
 
                     const maxRegex = /MAX\(([^)]+)\)/g;
                     const minRegex = /MIN\(([^)]+)\)/g;
+                    const avgRegex = /AVG\(([^)]+)\)/g;
+                    const countRegex = /COUNT\(([^)]+)\)/g;
+                    const standardDeviationRegex = /STDEV\(([^)]+)\)/g;
+                    const sumRegex = /SUM\(([^)]+)\)/g;
 
                     if(maxRegex.test(column)){
                         const maxColumn = column.match(maxRegex)[0].replace('MAX(', '').replace(')', '');
@@ -196,6 +203,58 @@ class Table {
                         });
                     }
 
+                    if(avgRegex.test(column)){
+                        const avgColumn = column.match(avgRegex)[0].replace('AVG(', '').replace(')', '').split(' ')[0];
+                        const returnOBJ = {};
+                        return await new Promise(resolve => {
+                            let avg = 0;
+                            filteredRows.forEach(row => {
+                                avg += parseInt(row[avgColumn]);
+                            });
+                            avg = avg / filteredRows.length;
+                            alias ? returnOBJ[alias] = avg : returnOBJ[avgColumn] = avg;
+                            resolve(returnOBJ);
+                        });
+                    }
+
+                    if(countRegex.test(column)){
+                        const obj = {};
+                        alias ? obj[alias] = filteredRows.length : obj[column] = filteredRows.length;
+                        return obj;
+                    }
+
+                    if(standardDeviationRegex.test(column)){
+                        const avgColumn = column.match(standardDeviationRegex)[0].replace('STDEV(', '').replace(')', '').split(' ')[0];
+                        const returnOBJ = {};
+                        return await new Promise(resolve => {
+                            let avg = 0;
+                            filteredRows.forEach(row => {
+                                avg += parseInt(row[avgColumn]);
+                            });
+                            avg = avg / filteredRows.length;
+                            let sum = 0;
+                            filteredRows.forEach(row => {
+                                sum += Math.pow(parseInt(row[avgColumn]) - avg, 2);
+                            });
+                            const standardDeviation = Math.sqrt(sum / filteredRows.length);
+                            alias ? returnOBJ[alias] = standardDeviation : returnOBJ[avgColumn] = standardDeviation;
+                            resolve(returnOBJ);
+                        });
+                    }
+
+                    if(sumRegex.test(column)){
+                        const sumColumn = column.match(sumRegex)[0].replace('SUM(', '').replace(')', '').split(' ')[0];
+                        const returnOBJ = {};
+                        return await new Promise(resolve => {
+                            let sum = 0;
+                            filteredRows.forEach(row => {
+                                sum += parseInt(row[sumColumn]);
+                            });
+                            alias ? returnOBJ[alias] = sum : returnOBJ[sumColumn] = sum;
+                            resolve(returnOBJ);
+                        });
+                    }
+
                     const result = [];
                     filteredRows
                         .map(row => row[column])
@@ -206,7 +265,6 @@ class Table {
                         });
                     return result;
                 }
-                break;
             }
             case 'insert': {
                 const columns = query.split('(')[1].split(')')[0].split(',');
