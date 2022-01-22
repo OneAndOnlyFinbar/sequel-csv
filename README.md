@@ -16,7 +16,7 @@ Yarn
 yarn add sequel-csv
 ```
 
-# [Documentation on Github](https://github.com/OneAndonlyFinbar/sequel-csv/wiki)
+# [Documentation on GitHub](https://github.com/OneAndonlyFinbar/sequel-csv/wiki)
 
 # Usage
 
@@ -72,8 +72,18 @@ console.log(results); // [{ userId: 1, level: 5 }]
 | WHERE  | Start condtionals           |
 | AND    | Logical AND                 |
 | AS     | Alias a single column       |
-| MAX()  | Maximum value for column    |
-| MIN()  | Minimum value for column    |
+
+### Aggregate Functions
+
+| Name    | Description                   |
+|---------|-------------------------------|
+| MAX()   | Maximum value for column      |
+| MIN()   | Minimum value for column      |
+| AVG()   | Get average column value      |
+| COUNT() | Get row count                 |
+| STDEV() | Get column standard deviation |
+| SUM()   | Get column sum                |
+
 
 ### Comparison
 
