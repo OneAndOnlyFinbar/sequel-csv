@@ -33,7 +33,7 @@ class Table {
      **/
     async query(query, args){
         let rows = [...this.rows];
-        const filteredRows = [...rows];
+        let filteredRows = [...rows];
 
         if(!args) args = [];
 
@@ -111,6 +111,30 @@ class Table {
                     else columns.push(querySequential[i]);
                 }
 
+                if(query.toString().includes('ORDER BY')){
+                    const orderBy = query.toString().split('ORDER BY')[1].trim();
+                    const orderByComponents = orderBy.split(' ');
+                    const orderByKey = orderByComponents[0];
+                    const orderByDirection = orderByComponents[1];
+                    filteredRows.sort((a, b) => {
+                        if(orderByDirection === 'ASC'){
+                            if(a[orderByKey] < b[orderByKey]) return -1;
+                            else if(a[orderByKey] > b[orderByKey]) return 1;
+                            else return 0;
+                        }
+                        else if(orderByDirection === 'DESC'){
+                            if(a[orderByKey] < b[orderByKey]) return 1;
+                            else if(a[orderByKey] > b[orderByKey]) return -1;
+                            else return 0;
+                        }
+                    });
+                }
+
+                if(query.includes('LIMIT')){
+                    const limit = query.toString().split('LIMIT')[1].trim();
+                    filteredRows = filteredRows.slice(0, parseInt(limit));
+                }
+
                 if(columns[0] === '*') return filteredRows;
 
                 let realColumns = Array.from(columns);
@@ -155,7 +179,6 @@ class Table {
                         for(let j = 0; j < columns.length; j++){
                             const column = columns[j].replaceAll(',', '');
                             const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim().replaceAll(',', '') : null;
-                            const originalColumn = column.split(' ')[0];
                             if([alias, 'AS'].includes(column)) continue;
                             if(alias){
                                 filteredRow[alias] = filteredRows[i][column];

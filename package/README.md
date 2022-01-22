@@ -62,17 +62,6 @@ console.log(results); // [{ userId: 1, level: 5 }]
 | INSERT  | Insert a new row            |
 | DELETE  | Delete a row                |
 
-### All Commands
-
-| Name   | Description                 |
-|--------|-----------------------------|
-| SELECT | Select one or multiple rows |
-| INSERT | Insert a new row            |
-| DELETE | Delete a row                |
-| WHERE  | Start condtionals           |
-| AND    | Logical AND                 |
-| AS     | Alias a single column       |
-
 ### Aggregate Functions
 
 | Name    | Description                   |
