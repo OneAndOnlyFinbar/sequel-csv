@@ -37,10 +37,8 @@ class Table {
 
         if(!args) args = [];
 
-        if(query.match(/\?/) ? query.match(/\?/).length !== args.length : false) return console.log(`ERR: Query arguments do not match query placeholders in query "${query}"`);
-        for(let i = 0; i < args.length; i++){
+        for(let i = 0; i < args.length; i++)
             query = query.replace('?', args[i]);
-        }
 
         if(query.includes('WHERE')){
             let condition;
@@ -142,10 +140,10 @@ class Table {
 
                 if(realColumns.length > 1){
                     const returnRows = [];
+                    let aliasedAggregateFunction = false;
                     for(let i = 0; i < columns.length; i++){
                         const column = columns[i].replaceAll(',', '');
-                        const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim() : null;
-
+                        const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim().replaceAll(',', '') : null;
                         const maxRegex = /MAX\(([^)]+)\)/g;
                         const minRegex = /MIN\(([^)]+)\)/g;
 
@@ -158,7 +156,8 @@ class Table {
                             });
                             if(alias) returnOBJ[alias] = max;
                             else returnOBJ[maxColumn] = max;
-                            return returnOBJ;
+                            returnRows.push(returnOBJ);
+                            aliasedAggregateFunction = true;
                         }
 
                         if(minRegex.test(column)){
@@ -170,7 +169,8 @@ class Table {
                             });
                             if(alias) returnOBJ[alias] = min;
                             else returnOBJ[minColumn] = min;
-                            return returnOBJ;
+                            returnRows.push(returnOBJ);
+                            aliasedAggregateFunction = true;
                         }
                     }
 
@@ -180,7 +180,7 @@ class Table {
                             const column = columns[j].replaceAll(',', '');
                             const alias = query.split(`${column} AS`)?.[1] ? query.split(`${column} AS`)[1].trim().split(' ')[0].trim().replaceAll(',', '') : null;
                             if([alias, 'AS'].includes(column)) continue;
-                            if(alias){
+                            if(alias && !aliasedAggregateFunction){
                                 filteredRow[alias] = filteredRows[i][column];
                             }else{
                                 if(filteredRows[i]?.[column]) filteredRow[column] = filteredRows[i][column];
@@ -283,7 +283,7 @@ class Table {
                         .map(row => row[column])
                         .forEach(value => {
                             let obj = {};
-                            obj[column] = value;
+                            alias ? obj[alias] = value : obj[column] = value;
                             result.push(obj);
                         });
                     return result;
@@ -308,7 +308,6 @@ class Table {
                     })
                     resolve();
                 })
-                console.log(entries)
                 fs.writeFileSync(this._path, `${this._headers}\n${entries.join('\n')}`);
             }
         }

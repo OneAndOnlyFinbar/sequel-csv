@@ -1,4 +1,10 @@
 const Table = require('./Table');
+const Query = require('./Query.js');
+
+/**
+ * Database class
+ * @description Instantiate a database class.
+ */
 
 class Database{
     _tables = [];
@@ -22,6 +28,8 @@ class Database{
     async query(query, args){
         const tableName = query.match(/\s(FROM|INTO|UPDATE)\s(\w+)/i)[2];
         const table = this._tables.find(table => table._name === tableName);
+        if(!table) throw new Error(`Table ${tableName} not found`);
+        new Query(query, args, table);
         query = query.replace(/\s(FROM|INTO|UPDATE)\s(\w+)/i, '');
         return table.query(query, args);
     }
