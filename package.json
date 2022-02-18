@@ -1,0 +1,22 @@
+{
+  "name": "sequel-csv",
+  "version": "1.6.0",
+  "description": "Perform sql operations against csv databases.",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [
+    "DATABASE",
+    "DB",
+    "CSV",
+    "COMMA SEPARATED VALUES",
+    "SEQUEL",
+    "SEQUELIZE",
+    "SEQUELIZE-CSV"
+  ],
+  "author": "https://www.npmjs.com/~finbar",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OneAndonlyFinbar/sequel-csv.git"
+  }
+}
