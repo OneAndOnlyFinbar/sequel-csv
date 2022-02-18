@@ -290,14 +290,18 @@ class Table {
                 }
             }
             case 'insert': {
-                const columns = query.split('(')[1].split(')')[0].split(',');
-                const values = query.split('VALUES')[1].toString().replaceAll(/[()]/g, '');
-                if(columns.length !== values.split(',').length) return console.error(`ERR: Mismatch in columns count and values count. "${query}".`);
+                let columns = query.split('(')[1].split(')')[0].split(',');
+                columns = columns.map(column => column.trim());
+                let values = query.split('VALUES')[1].toString().replaceAll(/[()]/g, '').trim().split(',');
                 let rowString = '';
-                for(let i = 0; i < columns.length; i++)
-                    rowString += i ? `${values.split(',')[i].trim()}` : `${values.split(',')[i].trim()},`;
-                rowString = rowString.replaceAll(/['"]/g, '');
-                fs.appendFileSync(this._path, `\n${rowString}`);
+                for(let i = 0; i < this._headers.length; i++){
+                    if(columns.includes(this._headers[i]))
+                        rowString += i === 0 ? values[columns.indexOf(this._headers[i])] : `,${values[columns.indexOf(this._headers[i])]}`;
+                    else
+                        rowString += ',';
+                }
+                rowString = rowString.split(',').map(value => value.trim()).toString();
+                this.#appendRow(rowString);
                 break;
             }
             case 'delete': {
@@ -311,6 +315,10 @@ class Table {
                 fs.writeFileSync(this._path, `${this._headers}\n${entries.join('\n')}`);
             }
         }
+    }
+
+    #appendRow(row){
+        fs.appendFileSync(this._path, `\n${row}`);
     }
 }
 
