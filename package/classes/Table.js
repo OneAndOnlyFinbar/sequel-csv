@@ -133,10 +133,13 @@ class Table {
                     filteredRows = filteredRows.slice(0, parseInt(limit));
                 }
 
-                if(columns[0] === '*') return filteredRows;
+                if(columns[0] === '*')
+                    return filteredRows;
 
                 let realColumns = Array.from(columns);
-                for(let i = 0; i < realColumns.length; i++) if(realColumns[i].includes('AS')) realColumns.splice(i, 2);
+                for(let i = 0; i < realColumns.length; i++)
+                    if(realColumns[i].includes('AS'))
+                        realColumns.splice(i, 2);
 
                 if(realColumns.length > 1){
                     const returnRows = [];
@@ -241,8 +244,21 @@ class Table {
                     }
 
                     if(countRegex.test(column)){
+                        const countColumn = column.match(countRegex)[0].replace('COUNT(', '').replace(')', '').split(' ')[0];
                         const obj = {};
-                        alias ? obj[alias] = filteredRows.length : obj[column] = filteredRows.length;
+                        if(countColumn === '*')
+                            alias ? obj[alias] = filteredRows.length : obj[column] = filteredRows.length;
+                        else{
+                            const returnOBJ = {};
+                            return await new Promise(resolve => {
+                                let count = 0;
+                                filteredRows.forEach(row => {
+                                    if(row[countColumn]) count++;
+                                });
+                                alias ? returnOBJ[alias] = count : returnOBJ[countColumn] = count;
+                                resolve(returnOBJ);
+                            });
+                        }
                         return obj;
                     }
 

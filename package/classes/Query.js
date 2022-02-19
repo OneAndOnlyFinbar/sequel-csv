@@ -87,7 +87,7 @@ class Query{
                 column = column.split('(')[1].split(')')[0];
             }
             //check if column exists
-            if(!columns.includes(column))
+            if(!columns.includes(column) && column !== '*')
                 throw new Error(`Column ${column} does not exist`);
         }
         //Check order by columns (As of version 1.4.1 you can only order by a single column but this will be changed in the future, therefore this checks multiple columns)
